@@ -1,0 +1,360 @@
+Concurrency in Go
+Presented to SLC Gophers
+8 Jul 2014
+Tags: go, golang, concurrency, utah, slc
+
+Ian Schenck
+SWE-SRE, DigitalOcean
+ian.schenck@gmail.com
+@ianschenck
+
+* About Me
+
+Started using Go at the end of 2011.
+
+Came to Go from C++. Previously worked in C, Python, Java and Common Lisp.
+
+Affiliations:
+
+- Current:  SWE-SRE at DigitalOcean
+- Previous: Software Architect at Calxeda (RIP)
+- Previous: SWE at Google
+
+* Meta
+
+.link github.com/ianschenck/gotalks
+
+.link https://godoc.org/code.google.com/p/go.tools/cmd/present
+
+.image ../gotalks.png
+
+* Some Opinions
+
+Approach #golang from the perspective of a C programmer, not a Ruby/Python/JS programmer. It'll all make more sense.
+
+Go empowers you to run on the metal without many of the pitfalls.
+
+Don't bring along solutions to problems that don't exist in Go.
+
+* What is Concurrency	  
+
+Concurrent computing is a form of computing in which several computations are executing during overlapping time periods – concurrently – instead of sequentially (one completing before the next starts). This is a property of a system – this may be an individual program, a computer, or a network – and there is a separate execution point or "thread of control" for each computation ("process"). A concurrent system is one where a computation can make progress without waiting for all other computations to complete – where more than one computation can make progress at "the same time" (see definition, below).[1]
+
+.link http://en.wikipedia.org/wiki/Concurrent_computing
+
+Doing more than one thing at a time.
+
+Parallel, Concurrent or Distributed?
+
+* Concurrency
+
+Processes
+
+Threads
+
+Event Loops
+
+* Concurrency: Processes
+
+*Insular* units which must do *extra*work*to*communicate*.
+
+- mmap: share pages of memory between processes.
+
+- sockets: pass messages locally.
+
+- ports (tcp/ip, udp): pass messages over a network interface.
+
+* Concurrency: Threads
+
+*Lightweight* units within a process which can access process memory. Still use *1-2MB* of baseline memory each.
+
+- Full access to shared process memory.
+
+- Lighter than processes.
+
+- Easy (C example).
+
+* Concurrency: Threads
+
+.code thread.c
+
+* Concurrency: Event Loops
+
+*Cheap* user-land concurrency. Context switching is implemented by the user, *hard*to*distribute*across*cores*, sometimes hard to program. Single-threaded can be *lockless*.
+
+Examples in other languages:
+
+- Python: gevent/eventlet/asyncore/Twisted/Tornado
+
+- Ruby: eventmachine
+
+- C/C++: select, libtask, boost coroutine
+
+- Java: java nio
+
+* Goroutines
+
+* Goroutines
+
+An Executor model: tasks may be executed when they are ready by any available executors.
+
+You can think of it as a very lightweight thread.
+
+.link https://code.google.com/p/google-concurrency-library/ google-concurrency-library
+
+.link https://docs.google.com/document/d/1TTj4T2JO42uD5ID9e89oa0sLKhJYD0Y_kqxDv3I3XMw/edit Design Doc
+
+* Goroutines Example
+
+.play goroutine1.go /START OMIT/,/END OMIT/
+
+* Goroutine Stacks
+
+Goroutine stacks are allocated on the heap. Since the stack pointer is just a register with just a pointer in it, this is possible.
+
+Since stacks are heap allocated, they can be expanded as long as there is free heap.
+
+Interacting with C can get tricky.
+
+So what's on the (C) stack?
+
+.link http://dave.cheney.net/2013/06/02/why-is-a-goroutines-stack-infinite Why is a Goroutine’s stack infinite ?
+
+.link http://dave.cheney.net/2014/06/07/five-things-that-make-go-fast Five Things That Make Go Fast
+
+* Go Runtime
+
+G structs represent goroutines and keep track of state and stack (tasks).
+
+M structs represent OS threads, which execute the goroutines (executors).
+
+When a goroutine blocks, the executing OS thread does not need to block. It can hand the goroutine back to the scheduler and start executing another goroutine.
+
+Some things that "block" goroutines:
+
+- io
+- channels
+- syscalls
+- locks
+
+.link http://www.quora.com/How-does-the-Go-runtime-work How Does the Go Runtime Work (Quora)
+
+* Goroutines
+
+Thanks to the runtime, don't need to block the underlying threads.
+
+If you think of goroutines as event-driven and threaded, you would be pretty close.
+
+.image http://2.bp.blogspot.com/-6qQrpCpHwsQ/T3MscypyVlI/AAAAAAAAALQ/wrYfDNTsq3U/s1600/gophergoggles33.jpeg
+
+* Communication
+
+* Communication
+
+Concurrency is easy. Communication in concurrent environments is typically not.
+
+Traditionally we relied on locks, mutexes, semaphores and an assortment of atomic datastructures.
+
+* Locks, Mutexes
+
+Locks/Mutexes still exist: sync package
+
+.link sync http://golang.org/pkg/sync/
+
+These serialize access to shared datastructures.
+
+Often these shared datastructures are used for communication and coordination.
+
+* Locks, Mutexes: Shared Memory
+
+"Pass messages by sharing memory"
+
+.play shared_mem.go /START OMIT/,/END OMIT/
+
+* Lock, Mutexes: Performance
+
+Sometimes you really just want a lock or an atomic operation.
+
+Sharing memory is still the fastest way to communicate between concurrent units.
+
+But this is an uncomforable model and history would suggest not an easy one to work with.
+
+* Channels
+
+* Channels
+
+Go offers a built in type for passing messages.
+
+  channel <- "foo"  // Pass the string "foo" into channel.
+ 
+  <-channel  // Read (but throw away) a value out of channel.
+  bar = <-channel  // Read a value out of channel.
+  bar, ok = <-channel  // Read a value out of channel, ok indicates if the channel is open.
+
+Channels integrate wonderfully into the runtime/language.
+
+Channels block (or not) where appropriate - no more mutexes!
+
+  channel := make(chan string)
+  <- channel  // Blocks until something else passes in a value.
+ 
+  channel := make(chan string)
+  channel <- "foo"  // Blocks until something else reads the value.
+
+Channels make sense as a message passing abstraction.
+
+* Channels
+
+Share memory by passing messages.
+
+.play message_passing.go /START OMIT/,/END OMIT/
+
+* Channels: Buffered and Unbuffered
+
+Channels can be buffered and unbuffered.
+
+.play channels.go
+
+* Channels: Capacity and Length
+
+.play channels2.go
+
+* Channels: Fan-in/Fan-out
+
+.play channel_fan.go /START OMIT/,/END OMIT/
+
+* Select
+
+* Select
+
+"A "select" statement chooses which of a set of possible send or receive operations will proceed. It looks similar to a "switch" statement but with the cases all referring to communication operations."
+
+.link http://golang.org/ref/spec#Select_statements
+
+.play select.go
+
+* Select and Reflection
+
+Sometimes you want to select over a slice of channels (C/Python/etc allow this easily).
+
+.play select_reflect.go /START OMIT/,/END OMIT/
+
+* Channel Tricks: The Empty Struct
+
+.link http://dave.cheney.net/2014/03/25/the-empty-struct The Empty Struct
+
+.play empty_struct.go
+
+Use an empty struct when the blocking characteristics of a channel are what matter.
+
+* Channel Tricks: nil and close
+
+Personally have found these to be extremely useful features of channels.
+
+A *closed* channel *never* blocks
+
+  close(channel)
+  <-channel // This will *never* block.
+
+A *nil* channel *always* blocks
+
+  channel = nil
+  <-channel // This will *forever* block. Stuck here forever.
+
+Used together, can be used to gracefully shut down a select loop.
+
+  for {
+    select {
+    case <-channel:
+      channel = nil
+    case <-exit:  // close(exit) elsewhere will exit the loop.
+      break
+    }
+  }
+
+* Channel Tricks: close()
+
+.play channel_close.go /START OMIT/,/END OMIT/
+
+* Channel Tricks: nil and close
+
+.play curious_channel.go /START OMIT/,/END OMIT/
+
+.link http://dave.cheney.net/2013/04/30/curious-channels Curious Channels
+
+* Channel Tricks: Reading a closed channel
+
+Similar to map access.
+
+.play read_channel_close.go
+
+* Sync
+
+Sometimes you really DO want synchronization around some data or code.
+
+Mutexes still outperform channel synchronization.
+
+But if it comes down to a tie, try to prefer channels.
+
+* Sync: Waitgroup
+
+A simple barrier.
+
+.play waitgroup.go /START OMIT/,/END OMIT/
+
+Also think of it as the converse of the previous close(exit) pattern.
+
+* Sync: Once
+
+Initialize something once and only once, threadsafe.
+
+.play sync_once.go /START OMIT/,/END OMIT/
+
+* sync/atomic
+
+Use atomic ops for very simple concurrent access/modification to primitive values.
+
+- Add (integers)
+
+- Compare and swap
+
+- Load
+
+- Store
+
+- Swap
+
+* Channels versus Sync
+
+90% of the time: use channels.
+
+- It's more natural for communication.
+
+10% of the time: use traditional synchronization.
+
+- When there is an overwhelming fit (i.e. reference counter).
+
+- When writing libraries where you have performance constraints.
+
+* Debugging Tips
+
+Use SIGQUIT `C-\` to terminate a frozen program and get a detailed stack trace.
+
+  kill -s QUIT 1234
+
+Use the race detector to help find problematic data access.
+
+  go test -race mypkg    // to test the package
+  go run -race mysrc.go  // to run the source file
+  go build -race mycmd   // to build the command
+  go install -race mypkg // to install the package
+
+* Meta
+
+.link github.com/ianschenck/gotalks
+
+.link https://godoc.org/code.google.com/p/go.tools/cmd/present
+
+.image ../gotalks.png
+
+PROMO CODE: *utahgophers*
