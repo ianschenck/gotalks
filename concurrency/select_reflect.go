@@ -25,14 +25,14 @@ func main() {
 	}
 
 	// START OMIT
-	cases := make([]reflect.SelectCase, len(chans))
-	for i, ch := range chans {
-		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)}
-	}
+	cases := make([]reflect.SelectCase, len(chans)) // HL
+	for i, ch := range chans {                      // HL
+		cases[i] = reflect.SelectCase{Dir: reflect.SelectRecv, Chan: reflect.ValueOf(ch)} // HL
+	} // HL
 
 	remaining := len(cases)
 	for remaining > 0 {
-		chosen, value, ok := reflect.Select(cases)
+		chosen, value, ok := reflect.Select(cases) // HL
 		if !ok {
 			// The chosen channel has been closed, so zero out the channel to disable the case
 			cases[chosen].Chan = reflect.ValueOf(nil)

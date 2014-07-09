@@ -1,5 +1,5 @@
 Concurrency in Go
-Presented to SLC Gophers
+Presented to Utah Gophers
 8 Jul 2014
 Tags: go, golang, concurrency, utah, slc
 
@@ -110,7 +110,7 @@ You can think of it as a very lightweight thread.
 
 * Goroutine Stacks
 
-Goroutine stacks are allocated on the heap. Since the stack pointer is just a register with just a pointer in it, this is possible.
+Goroutine stacks are allocated on the heap. Since the stack pointer is just a pointer in a register, this Just Works.
 
 Since stacks are heap allocated, they can be expanded as long as there is free heap.
 
@@ -171,7 +171,7 @@ Often these shared datastructures are used for communication and coordination.
 
 .play shared_mem.go /START OMIT/,/END OMIT/
 
-* Lock, Mutexes: Performance
+* Lock, Mutexes
 
 Sometimes you really just want a lock or an atomic operation.
 
@@ -231,7 +231,7 @@ Channels can be buffered and unbuffered.
 
 .link http://golang.org/ref/spec#Select_statements
 
-.play select.go
+.play select.go /START OMIT/,/END OMIT/
 
 * Select and Reflection
 
@@ -324,16 +324,18 @@ Use atomic ops for very simple concurrent access/modification to primitive value
 
 - Swap
 
+Note: atomic ops are _how_ mutexes are implemented.
+
 * Channels versus Sync
 
 90% of the time: use channels.
 
 - It's more natural for communication.
+- Simpler for constructing applications/services.
 
 10% of the time: use traditional synchronization.
 
 - When there is an overwhelming fit (i.e. reference counter).
-
 - When writing libraries where you have performance constraints.
 
 * Debugging Tips
@@ -356,5 +358,3 @@ Use the race detector to help find problematic data access.
 .link https://godoc.org/code.google.com/p/go.tools/cmd/present
 
 .image ../gotalks.png
-
-PROMO CODE: *utahgophers*

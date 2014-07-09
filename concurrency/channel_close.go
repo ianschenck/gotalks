@@ -12,7 +12,7 @@ var wg sync.WaitGroup
 func worker(i int, exit chan struct{}) {
 	for {
 		select {
-		case <-exit:
+		case <-exit: // HL
 			fmt.Printf("worker%d - exit\n", i)
 			wg.Done()
 			return
@@ -29,7 +29,7 @@ func main() {
 		go worker(i, exit)
 	}
 	<-time.After(1 * time.Second)
-	close(exit)
+	close(exit) // HL
 	wg.Wait()
 }
 
