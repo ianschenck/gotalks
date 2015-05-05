@@ -97,13 +97,11 @@ Example, [[gen.sh]]
 
 * Code generation
 
-Generate file, [[StringSet_string_set.go]]
+Generated file, [[StringSet_string_set.go]]
 
 .code -numbers StringSet_string_set.go
 
 * Code generation
-
-It works!
 
 Test file, [[set_string_test.go]] (hmm, this could also be generated using
 testing/quick)
