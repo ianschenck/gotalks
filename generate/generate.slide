@@ -77,13 +77,13 @@ Only generate specific command alias*
 
 * Code generation
 
-Example, set_string.go
+Example, [[set_string.go]]
 
 .code -numbers set_string.go
 
 * Code generation
 
-Example, set.go
+Example, [[set.go]]
 
 .code -numbers set.go /build generate/,/package generate/
 
@@ -91,17 +91,22 @@ Example, set.go
 
 * Code generation
 
-Example, gen.sh
+Example, [[gen.sh]]
 
 .code -numbers gen.sh
 
 * Code generation
+
+Generate file, [[StringSet_string_set.go]]
 
 .code -numbers StringSet_string_set.go
 
 * Code generation
 
 It works!
+
+Test file, [[set_string_test.go]] (hmm, this could also be generated using
+testing/quick)
 
 .code set_string_test.go /func Test/,/^}/
 
