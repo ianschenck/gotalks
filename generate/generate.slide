@@ -48,6 +48,19 @@ Command alias
   //go:generate -command alias command arg...
   //go:generate alias arg...
 
+* Odds and ends
+
+Recommended that you put generated files/sources in source
+control. The next person might not have
+webpack/thrift/protoc/go-bindata installed
+
+If tools are on a build server, double check that sources are up to
+date in review (like a lint check)
+
+Build flag `generate` makes a file only in-scope for go generate
+
+  // +build generate
+
 * Real-world
 
 Thrift
@@ -62,18 +75,41 @@ Only generate specific command alias*
 
   % go generate -run go-bindata all
 
-* Odds and ends
+* Code generation
 
-Recommended that you put generated files/sources in source
-control. The next person might not have
-webpack/thrift/protoc/go-bindata installed
+Example, set_string.go
 
-If tools are on a build server, double check that sources are up to
-date in review (like a lint check)
+.code -numbers set_string.go
 
-Build flag `generate` makes a file only in-scope for go generate
+* Code generation
 
-  // +build generate
+Example, set.go
+
+.code -numbers set.go /build generate/,/package generate/
+
+.code -numbers set.go /Union/,/^}/
+
+* Code generation
+
+Example, gen.sh
+
+.code -numbers gen.sh
+
+* Code generation
+
+.code -numbers StringSet_string_set.go
+
+* Code generation
+
+It works!
+
+.code set_string_test.go /func Test/,/^}/
+
+  % go test . -v
+  === RUN TestUnion
+  --- PASS: TestUnion (0.00s)
+  PASS
+  ok  	_/Users/ian/projects/gotalks/generate	0.004s
 
 * Complaints (there's always something)
 
