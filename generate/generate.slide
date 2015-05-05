@@ -1,0 +1,87 @@
+Using Go Generate
+Presented to Utah Gophers
+5 May 2015
+Tags: go, golang, generate, utah
+
+Ian Schenck
+SWE, Oscar Health Insurance (hioscar.com)
+ian.schenck@gmail.com
+@ianschenck
+
+* Go Generate
+
+.link https://blog.golang.org/generate
+
+.link http://golang.org/s/go1.4-generate
+
+Blog examples are uninspiring:
+
+- Yacc
+
+  //go:generate go tool yacc -o gopher.go -p parser gopher.y
+  
+- Stringer
+
+  //go:generate stringer -type=Pill
+
+So what?
+
+* Step Back
+
+Go generate allows you to run arbitrary commands from the build tool:
+
+- Protocol buffer, thrift compilation
+- Compiling assets (e.g. webpack)
+- Embedding files or assets (go-bindata, go-assets)
+- Fetching artifacts
+
+I can use this!
+
+* The directive //go:generate
+
+Basic usage
+
+  //go:generate command arg...
+
+Command alias
+
+  //go:generate -command alias command arg...
+  //go:generate alias arg...
+
+* Real-world
+
+Thrift
+
+   //go:generate thrift -r --gen go --out . foo.thrift
+
+go-bindata
+
+  //go:generate go-bindata -o foo.go data/
+
+Only generate specific command alias*
+
+  % go generate -run go-bindata all
+
+* Odds and ends
+
+Recommended that you put generated files/sources in source
+control. The next person might not have
+webpack/thrift/protoc/go-bindata installed
+
+If tools are on a build server, double check that sources are up to
+date in review (like a lint check)
+
+Build flag `generate` makes a file only in-scope for go generate
+
+  // +build generate
+
+* Complaints (there's always something)
+
+Not declarative, which makes dependency resolution harder (compare to
+bazel or pants)
+
+Actual `-run` flag is not yet implemented (as of 1.4)
+
+It really can be *any* command
+
+  //go:generate rm -rf /
