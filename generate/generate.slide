@@ -77,6 +77,16 @@ Only generate specific command alias*
 
 * Code generation
 
+Don't try this at home.
+
+*Warning*: Much of the action depicted and/or described in these
+slides is potentially dangerous. Virtually all of the snippets seen in
+the slides are crazy ideas. Do not attempt to duplicate any stunts
+that are beyond your own capabilities. Always wear the appropriate
+safety gear.
+
+* Code generation
+
 Example, [[set_string.go]]
 
 .code -numbers set_string.go
